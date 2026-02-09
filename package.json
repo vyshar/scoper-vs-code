@@ -1,0 +1,226 @@
+{
+  "name": "file-scoper",
+  "version": "0.0.2",
+  "displayName": "file-scoper",
+  "description": "Scoper allows you to keep at hand files you're woking on. It does not require to keep a lots of tabs opened. Just create a scope, add files to it and it will stays there. Your files will always be right there even if you close tabs or restart vscode.",
+  "icon": "resources/icon.png",
+  "license": "MIT",
+  "publisher": "vyshar",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vyshar/scoper-vs-code"
+  },
+  "engines": {
+    "vscode": "^1.108.1"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "scoper",
+          "title": "Scoper",
+          "icon": "$(layers)"
+        }
+      ]
+    },
+    "views": {
+      "scoper": [
+        {
+          "icon": "$(layers)",
+          "id": "scoperTreeView",
+          "name": "Scopes"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "scoper.createScope",
+          "when": "view == scoperTreeView",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "scoper.setActiveScope",
+          "when": "view == scoperTreeView && viewItem == scope",
+          "group": "inline@1"
+        },
+        {
+          "command": "scoper.renameScope",
+          "when": "view == scoperTreeView && (viewItem == scope || viewItem == activeScope)",
+          "group": "inline@1"
+        },
+        {
+          "command": "scoper.deleteScope",
+          "when": "view == scoperTreeView && (viewItem == scope || viewItem == activeScope)",
+          "group": "inline@2"
+        },
+        {
+          "command": "scoper.removeFileFromScope",
+          "when": "view == scoperTreeView && viewItem == file",
+          "group": "inline@2"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "scoper.createScope",
+        "title": "Scoper: Create Scope",
+        "icon": "$(add)"
+      },
+      {
+        "command": "scoper.setActiveScope",
+        "title": "Scoper: Set Active Scope",
+        "icon": "$(check)"
+      },
+      {
+        "command": "scoper.addFileToScope",
+        "title": "Scoper: Add File to active scope"
+      },
+      {
+        "command": "scoper.deleteScope",
+        "title": "Scoper: Delete Scope",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "scoper.removeFileFromScope",
+        "title": "Scoper: Remove File from Scope",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "scoper.renameScope",
+        "title": "Scoper: Rename Scope",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "scoper.showFile1",
+        "title": "Scoper: Open File 1"
+      },
+      {
+        "command": "scoper.showFile2",
+        "title": "Scoper: Open File 2"
+      },
+      {
+        "command": "scoper.showFile3",
+        "title": "Scoper: Open File 3"
+      },
+      {
+        "command": "scoper.showFile4",
+        "title": "Scoper: Open File 4"
+      },
+      {
+        "command": "scoper.showFile5",
+        "title": "Scoper: Open File 5"
+      },
+      {
+        "command": "scoper.showFile6",
+        "title": "Scoper: Open File 6"
+      },
+      {
+        "command": "scoper.showFile7",
+        "title": "Scoper: Open File 7"
+      },
+      {
+        "command": "scoper.showFile8",
+        "title": "Scoper: Open File 8"
+      },
+      {
+        "command": "scoper.showFile9",
+        "title": "Scoper: Open File 9"
+      },
+      {
+        "command": "scoper.showFile0",
+        "title": "Scoper: Open File 10"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "scoper.showFile1",
+        "key": "alt+s alt+1",
+        "mac": "alt+s alt+1"
+      },
+      {
+        "command": "scoper.showFile2",
+        "key": "alt+s alt+2",
+        "mac": "alt+s alt+2"
+      },
+      {
+        "command": "scoper.showFile3",
+        "key": "alt+s alt+3",
+        "mac": "alt+s alt+3"
+      },
+      {
+        "command": "scoper.showFile4",
+        "key": "alt+s alt+4",
+        "mac": "alt+s alt+4"
+      },
+      {
+        "command": "scoper.showFile5",
+        "key": "alt+s alt+5",
+        "mac": "alt+s alt+5"
+      },
+      {
+        "command": "scoper.showFile6",
+        "key": "alt+s alt+6",
+        "mac": "alt+s alt+6"
+      },
+      {
+        "command": "scoper.showFile7",
+        "key": "alt+s alt+7",
+        "mac": "alt+s alt+7"
+      },
+      {
+        "command": "scoper.showFile8",
+        "key": "alt+s alt+8",
+        "mac": "alt+s alt+8"
+      },
+      {
+        "command": "scoper.showFile9",
+        "key": "alt+s alt+9",
+        "mac": "alt+s alt+9"
+      },
+      {
+        "command": "scoper.showFile0",
+        "key": "alt+s alt+0",
+        "mac": "alt+s alt+0"
+      },
+      {
+        "command": "scoperTreeView.focus",
+        "key": "alt+s alt+s",
+        "mac": "alt+s alt+s"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "pnpm run package",
+    "compile": "pnpm run check-types && pnpm run lint && node esbuild.js",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "package": "pnpm run check-types && pnpm run lint && node esbuild.js --production",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.108.1",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "typescript-eslint": "^8.52.0",
+    "eslint": "^9.39.2",
+    "esbuild": "^0.27.2",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^5.9.3",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2"
+  }
+}
