@@ -10,22 +10,22 @@ import { createScopeCommand } from './controllers/createScope'
 import { addFileToScopeCommand } from './controllers/addFileToScope'
 import { selectActiveScopeCommand } from './controllers/selectActiveScope'
 import { removeFileFromScopeCommand } from './controllers/removeFileFromScope'
-import { showFileByIndexCommands } from './controllers/showFile'
+import { showFileByIndexCommands, showFileCommand } from './controllers/showFile'
 import { renameScopeCommand } from './controllers/renameScope'
 import { TreeViewService } from './services/treeView.service'
 import { StatusBarService } from './services/statusbar.service'
 import { showScopeFilesCommand } from './controllers/showScopeFiles'
+import { deleteScopeCommand } from './controllers/deleteScope'
 
 export async function activate(context: ExtensionContext): Promise<void> {
     const sessionRepository = LocalRepository(context.workspaceState)
     const jsonRepository = JsonRepository()
     const scopeService = ScopeService(sessionRepository)
     const syncService = SyncService(sessionRepository, jsonRepository)
-    const treeViewService = TreeViewService(context, scopeService)
-    const statusBarService = StatusBarService(context, scopeService)
+    const treeViewService = TreeViewService(scopeService)
+    const statusBarService = StatusBarService(scopeService)
 
     const commandContext: CommandContext = {
-        ctx: context,
         scopeService,
         syncService,
         treeViewService,
@@ -40,9 +40,11 @@ export async function activate(context: ExtensionContext): Promise<void> {
         removeFileFromScopeCommand,
         renameScopeCommand,
         showScopeFilesCommand,
+        deleteScopeCommand,
+        showFileCommand,
         ...showFileByIndexCommands,
     ])
-    context.subscriptions.push(...commands)
+    context.subscriptions.push(...commands, ...treeViewService.disposables(), ...statusBarService.disposables())
 }
 
 export function deactivate(): void {}

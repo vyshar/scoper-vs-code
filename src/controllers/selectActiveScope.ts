@@ -3,18 +3,20 @@ import { defineCommand } from '@/utils/command'
 import { Option } from '@/utils/data-types/Option'
 import { Result } from '@/utils/data-types/Result'
 import { notify } from '@/utils/vscode/notify'
-import { ScopeTreeItem } from '@/types/TreeItem'
+import { IScopeTreeItem } from '@/types/TreeItem'
 import { showPicker } from '@/utils/vscode/showPicker'
 
 export const selectActiveScopeCommand = defineCommand(
     'selectActiveScope',
-    ({ scopeService }) =>
-        async (scopeTreeItem?: ScopeTreeItem) => {
+    ({ scopeService, treeViewService, statusBarService }) =>
+        async (scopeTreeItem?: IScopeTreeItem) => {
             if (scopeTreeItem) {
                 const activateResult = await scopeService.setActiveScope(scopeTreeItem.scope)
                 if (Result.isErr(activateResult)) {
                     return notify.error(activateResult.error)
                 }
+                treeViewService.refresh()
+                statusBarService.setActiveScopeName(scopeTreeItem.scope.name)
                 return
             }
             const scopes = scopeService.getScopes()
@@ -34,6 +36,9 @@ export const selectActiveScopeCommand = defineCommand(
             if (Result.isErr(activateResult)) {
                 return notify.error(activateResult.error)
             }
+
+            treeViewService.refresh()
+            statusBarService.setActiveScopeName(selectedScope.value.name)
 
             return notify.success(`Scope "${selectedScope.value.name}" is now active`)
         }

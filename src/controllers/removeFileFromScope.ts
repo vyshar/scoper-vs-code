@@ -1,14 +1,12 @@
-import vscode from 'vscode'
 import { defineCommand } from '@/utils/command'
-import { Option } from '@/utils/data-types/Option'
 import { Result } from '@/utils/data-types/Result'
 import { notify } from '@/utils/vscode/notify'
-import { ScopeFileTreeItem } from '@/types/TreeItem'
+import type { IScopeFileTreeItem } from '@/types/TreeItem'
 
 export const removeFileFromScopeCommand = defineCommand(
     'removeFileFromScope',
-    ({ scopeService }) =>
-        async (scopeFileTreeItem?: ScopeFileTreeItem) => {
+    ({ scopeService, treeViewService }) =>
+        async (scopeFileTreeItem?: IScopeFileTreeItem) => {
             if (!scopeFileTreeItem) {
                 return
             }
@@ -21,13 +19,10 @@ export const removeFileFromScopeCommand = defineCommand(
                 return notify.error(removeFileResult.error)
             }
 
+            treeViewService.refresh()
+
             const filename = path.split('/').pop()
-            const scope = scopeService.getScopeById(scopeId)
 
-            if (Option.isNone(scope)) {
-                return notify.error('Scope not found')
-            }
-
-            return notify.success(`File "${filename}" removed from scope "${scope.value.name}"`)
+            return notify.success(`File "${filename}" removed from scope`)
         }
 )

@@ -3,6 +3,7 @@ import { defineCommand } from '@/utils/command'
 import { Option } from '@/utils/data-types/Option'
 import { Result } from '@/utils/data-types/Result'
 import { showPicker } from '@/utils/vscode/showPicker'
+import { notify } from '@/utils/vscode/notify'
 
 export const showScopeFilesCommand = defineCommand('showScopeFiles', ({ scopeService }) => async () => {
     const activeScopeOption = scopeService.getActiveScope()
@@ -14,7 +15,7 @@ export const showScopeFilesCommand = defineCommand('showScopeFiles', ({ scopeSer
     const files = scopeService.getScopeFiles(activeScopeOption.value.id)
 
     if (Result.isErr(files)) {
-        return vscode.window.showErrorMessage(files.error)
+        return notify.error(files.error)
     }
 
     if (files.value.length === 0) {

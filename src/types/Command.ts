@@ -9,7 +9,6 @@ export interface CommandContext {
     syncService: ISyncService
     treeViewService: ITreeViewService
     statusBarService: IStatusBarService
-    ctx: vscode.ExtensionContext
 }
 
 export type CommandHandler<T extends unknown[] = []> = (...args: T) => Promise<unknown> | unknown

@@ -38,17 +38,9 @@ export const LocalRepository = (state: vscode.Memento): ILocalRepository => {
         },
         update: async (scopeId: string, updater: (scope: Scope) => Scope): Promise<Scope> => {
             const scopes = getScopes()
-            const scope = scopes.find((s) => s.id === scopeId)
-            if (!scope) throw new Error(`Scope with id ${scopeId} not found`)
-
-            const updated = updater(scope)
-
-            await state.update(
-                SCOPES_KEY,
-                scopes.map((s) => (s.id === scopeId ? updated : s))
-            )
-
-            return updated
+            const updatedScopes = scopes.map((s) => (s.id === scopeId ? updater(s) : s))
+            await state.update(SCOPES_KEY, updatedScopes)
+            return updatedScopes.find((s) => s.id === scopeId)!
         },
         delete: async (scopeId: string): Promise<void> => {
             await state.update(

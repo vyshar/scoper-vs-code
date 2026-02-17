@@ -9,5 +9,5 @@ export const showInput = async (
         prompt: placeholder,
         ...options,
     })
-    return inputValue ? some(inputValue) : none
+    return inputValue !== undefined ? some(inputValue) : none
 }

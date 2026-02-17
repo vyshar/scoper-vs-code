@@ -32,6 +32,14 @@ export const fromNullable = <T>(value: T | null | undefined): Option<T> => {
     return some(value)
 }
 
+export const whenSome =
+    <T>(fn: (value: T) => void) =>
+    (option: Option<T>): void => {
+        if (isSome(option)) {
+            fn(option.value)
+        }
+    }
+
 export type Option<T> = Some<T> | None
 export const Option = {
     some,
@@ -41,4 +49,5 @@ export const Option = {
     map,
     match,
     fromNullable,
+    whenSome,
 }

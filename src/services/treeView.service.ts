@@ -1,61 +1,49 @@
-import { EventEmitter, ExtensionContext, window, workspace } from 'vscode'
+import vscode from 'vscode'
 import type { IScopeService } from './scope.service'
-import { ScopeFileTreeItem, ScopeTreeItem } from '../types/TreeItem'
-import { createTreeDataProvider } from './treeDataProvider'
+import { IScopeFileTreeItem, IScopeTreeItem } from '../types/TreeItem'
+import { ScopeTreeDataProvider } from '../views/treeDataProvider'
+import { Option } from '@/utils/data-types/Option'
+import { pipe } from '@/utils/pipe'
 
-export const TreeViewService = (context: ExtensionContext, scopeService: IScopeService) => {
-    const treeViewEventEmitter = new EventEmitter<ScopeTreeItem | ScopeFileTreeItem | undefined>()
-    const treeDataProvider = createTreeDataProvider(scopeService, treeViewEventEmitter)
+export const TreeViewService = (scopeService: IScopeService) => {
+    const treeViewEventEmitter = new vscode.EventEmitter<IScopeTreeItem | IScopeFileTreeItem | undefined>()
+    const treeDataProvider = ScopeTreeDataProvider(scopeService, treeViewEventEmitter)
 
-    const treeView = window.createTreeView('scoperTreeView', {
+    const treeView = vscode.window.createTreeView('scoperTreeView', {
         treeDataProvider,
         showCollapseAll: false,
     })
 
-    const buildRevealId = (relativePath: string): string => {
-        // const activeScope = scopeService.getActiveScope()
-        // if (!activeScope.ok) {
-        //     return ''
-        // }
-        // return scopeService.isFileInActiveScope(relativePath)
-        //     ? `${activeScope.value.id}/${relativePath}`
-        //     : activeScope.value.id
-        return ''
-    }
+    const buildRevealId = (openedDocumentPath: string): Option<string> =>
+        pipe(
+            scopeService.getActiveScope(),
+            Option.map((scope) => {
+                return scope.files.includes(openedDocumentPath) ? `${scope.id}/${openedDocumentPath}` : scope.id
+            })
+        )
 
-    window.onDidChangeActiveTextEditor((editor) => {
+    vscode.window.onDidChangeActiveTextEditor((editor) => {
         if (!editor || !treeView.visible) {
             return
         }
 
-        // const activeScope = scopeService.getActiveScope()
-        // if (!activeScope.ok) {
-        //     return
-        // }
-
-        const openedFileUri = editor.document.uri
-        const relativePath = workspace.asRelativePath(openedFileUri)
-        const revealId = buildRevealId(relativePath)
-
-        if (!revealId) {
-            return
-        }
-
-        // VS Code reveal() matches by id, but requires the full item type — unavoidable assertion
-        treeView.reveal({ id: revealId } as ScopeTreeItem | ScopeFileTreeItem, {
-            focus: false,
-            select: true,
-            expand: true,
-        })
+        pipe(
+            buildRevealId(editor.document.uri.fsPath ?? ''),
+            Option.whenSome((revealId) => {
+                return treeView.reveal({ id: revealId } as IScopeTreeItem | IScopeFileTreeItem, {
+                    focus: false,
+                    select: true,
+                    expand: true,
+                })
+            })
+        )
     })
-
-    context.subscriptions.push(treeView)
-    context.subscriptions.push(treeViewEventEmitter)
 
     return {
         refresh: () => {
             treeViewEventEmitter.fire(undefined)
         },
+        disposables: () => [treeView, treeViewEventEmitter],
     }
 }
 

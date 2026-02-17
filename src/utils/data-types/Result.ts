@@ -6,12 +6,14 @@ export const err = <T, E>(error: E): Result<T, E> => ({ _tag: 'Err', error })
 
 export const isOk = <T, E>(result: Result<T, E>): result is Ok<T> => result._tag === 'Ok'
 export const isErr = <T, E>(result: Result<T, E>): result is Err<E> => result._tag === 'Err'
-export const match = <T, E, U>(result: Result<T, E>, onOk: (value: T) => U, onErr: (error: E) => U): U => {
-    if (isOk(result)) {
-        return onOk(result.value)
+export const match =
+    <T, E, U>(onOk: (value: T) => U, onErr: (error: E) => U) =>
+    (result: Result<T, E>): U => {
+        if (isOk(result)) {
+            return onOk(result.value)
+        }
+        return onErr(result.error)
     }
-    return onErr(result.error)
-}
 
 export const fromPromise = async <T, E>(promise: Promise<T>, onError: (error: unknown) => E): Promise<Result<T, E>> => {
     try {

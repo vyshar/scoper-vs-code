@@ -104,6 +104,10 @@
         "icon": "$(file)"
       },
       {
+        "command": "scoper.showFile",
+        "title": "Scoper: Open File"
+      },
+      {
         "command": "scoper.showFile1",
         "title": "Scoper: Open File 1"
       },

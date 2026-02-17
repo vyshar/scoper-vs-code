@@ -18,6 +18,7 @@ export interface IScopeService {
     getScopeByName(name: string): Option<Scope>
     getScopeById(id: string): Option<Scope>
     renameScope(scopeId: string, newName: string): Promise<Result<Scope, string>>
+    deleteScope(scopeId: string): Promise<Result<void, string>>
 
     /**
      * Active scope operations
@@ -32,10 +33,7 @@ export interface IScopeService {
 export const ScopeService = (localRepository: ILocalRepository): IScopeService => {
     return {
         getScopeByName: (name: string) => Option.fromNullable(localRepository.getByName(name)),
-        getScopes: (): Scope[] => {
-            const scopes = localRepository.getAll()
-            return scopes
-        },
+        getScopes: localRepository.getAll,
         getScopeById: (id: string): Option<Scope> => Option.fromNullable(localRepository.getById(id)),
         getActiveScope: (): Option<Scope> => Option.fromNullable(localRepository.getActiveScope()),
         setActiveScope: async (scope: Scope) => {
@@ -74,7 +72,7 @@ export const ScopeService = (localRepository: ILocalRepository): IScopeService =
 
             return Result.fromPromise(
                 localRepository.update(scope.id, (s) => ({ ...s, files: s.files.filter((f) => f !== filePath) })),
-                formatError('Failed to add file to scope')
+                formatError('Failed to remove file from scope')
             )
         },
         renameScope: async (scopeId: string, newName: string) => {
@@ -97,6 +95,13 @@ export const ScopeService = (localRepository: ILocalRepository): IScopeService =
                 return Result.err(ERROR_SCOPE_NOT_FOUND)
             }
             return Result.ok(scope.files)
+        },
+        deleteScope: async (scopeId: string) => {
+            const scope = localRepository.getById(scopeId)
+            if (!scope) {
+                return Result.err(ERROR_SCOPE_NOT_FOUND)
+            }
+            return Result.fromPromise(localRepository.delete(scopeId), formatError('Failed to delete scope'))
         },
     }
 }
