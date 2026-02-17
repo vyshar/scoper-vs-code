@@ -1,2 +1,2 @@
-import { randomUUID } from "node:crypto";
-export const createId = (): string => randomUUID();
+import { randomUUID } from 'node:crypto'
+export const createId = (): string => randomUUID()
