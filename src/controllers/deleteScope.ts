@@ -20,8 +20,8 @@ export const deleteScopeCommand = defineCommand(
                     () => {
                         return notify.success(`Scope "${scopeTreeItem.scope.name}" deleted`)
                     },
-                    () => {
-                        return notify.error('Failed to delete scope')
+                    (error) => {
+                        return notify.error(error)
                     }
                 )
             )

@@ -10,7 +10,6 @@ import {
 } from '@/utils/errors'
 import { ChangeEventEmitter } from '@/types/ChangeEventEmitter'
 import { pipe } from '@/utils/pipe'
-import { notify } from '@/utils/vscode/notify'
 
 export interface IScopeService {
     /**
@@ -22,6 +21,7 @@ export interface IScopeService {
     getScopeById(id: string): Option<Scope>
     renameScope(scopeId: string, newName: string): Promise<Result<Scope, string>>
     deleteScope(scopeId: string): Promise<Result<void, string>>
+    swapFilesInScope(scopeId: string, filePath: string, targetFilePath: string | null): Promise<Result<Scope, string>>
 
     /**
      * Active scope operations
@@ -30,7 +30,6 @@ export interface IScopeService {
     setActiveScope(scope: Scope): Promise<Result<void, string>>
     addFileToScope(scopeId: string, filePath: string): Promise<Result<Scope, string>>
     removeFileFromScope(scopeId: string, filePath: string): Promise<Result<Scope, string>>
-    swapFilesInScope(scopeId: string, filePath: string, targetFilePath: string | null): Promise<Result<Scope, string>>
     getScopeFiles(scopeId: string): Result<readonly string[], string>
 }
 
@@ -114,22 +113,26 @@ export const ScopeService = (localRepository: ILocalRepository, changeEmitter: C
                 return Result.err(ERROR_SCOPE_NOT_FOUND)
             }
 
-            const fileIndex = scope.files.findIndex((f) => f === filePath)
-            const targetIndex = targetFilePath ? scope.files.findIndex((f) => f === targetFilePath) : -1
+            let files: string[]
 
-            const files = [...scope.files]
-            const f = files[fileIndex]
-            const t = files[targetIndex]
-
-            files[fileIndex] = t
-            files[targetIndex] = f
+            if (targetFilePath === null) {
+                files = [...scope.files.filter((f) => f !== filePath), filePath]
+            } else {
+                const fileIndex = scope.files.indexOf(filePath)
+                const targetIndex = scope.files.indexOf(targetFilePath)
+                if (fileIndex === -1 || targetIndex === -1) {
+                    return Result.err(ERROR_SCOPE_NOT_FOUND)
+                }
+                files = [...scope.files]
+                ;[files[fileIndex], files[targetIndex]] = [files[targetIndex], files[fileIndex]]
+            }
 
             return pipe(
                 Result.fromPromise(
                     localRepository.update(scope.id, (s) => ({ ...s, files })),
                     formatError('Failed to move file in scope')
                 ),
-                Result.tapOkAsync(() => changeEmitter.fire(undefined))
+                Result.tapOkAsync(() => changeEmitter.fire('MOVE_FILE_IN_SCOPE'))
             )
         },
         getScopeFiles: (scopeId: string): Result<readonly string[], string> => {

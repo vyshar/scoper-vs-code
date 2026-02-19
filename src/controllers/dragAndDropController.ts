@@ -25,34 +25,20 @@ export const DragAndDropController = (
             const transferItem = dataTransfer.get('application/vnd.code.tree.scoperTreeView')
             if (!transferItem) return
 
-            const source: IScopeFileTreeItem | IScopeTreeItem = transferItem.value satisfies
-                | IScopeFileTreeItem
-                | IScopeTreeItem
+            const source = transferItem.value as IScopeFileTreeItem | IScopeTreeItem
 
             if (source.contextValue !== 'file') return
 
             const targetScopeId = target.contextValue === 'file' ? target.scopeId : target.scope.id
 
-            if (source.scopeId === targetScopeId) {
-                if (source.path === (target.contextValue === 'file' ? target.path : null)) return
+            if (source.scopeId !== targetScopeId) return
 
-                const targetFilePath = target.contextValue === 'file' ? target.path : null
-                scopeService.swapFilesInScope(source.scopeId, source.path, targetFilePath).then((result) => {
-                    if (Result.isErr(result)) notify.error(result.error)
-                    return
-                })
-            }
+            const targetFilePath = target.contextValue === 'file' ? target.path : null
+            if (source.path === targetFilePath) return
 
-            // const removeResult = await scopeService.removeFileFromScope(source.scopeId, source.path)
-            // if (Result.isErr(removeResult)) {
-            //     notify.error(removeResult.error)
-            //     return
-            // }
-
-            // const addResult = await scopeService.addFileToScope(targetScopeId, source.path)
-            // if (Result.isErr(addResult)) {
-            //     notify.error(addResult.error)
-            // }
+            scopeService.swapFilesInScope(source.scopeId, source.path, targetFilePath).then((result) => {
+                if (Result.isErr(result)) notify.error(result.error)
+            })
         },
     }
 }
