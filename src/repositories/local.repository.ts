@@ -1,5 +1,5 @@
 import vscode from 'vscode'
-import { Scope } from '@/types/Scope'
+import type { Scope } from '@/types/scope'
 
 import { ACTIVE_SCOPE_KEY, SCOPES_KEY } from './keys'
 

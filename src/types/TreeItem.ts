@@ -1,5 +1,5 @@
 import vscode from 'vscode'
-import { Scope } from './Scope'
+import { Scope } from './scope'
 
 type TreeItemProps = Pick<
     vscode.TreeItem,

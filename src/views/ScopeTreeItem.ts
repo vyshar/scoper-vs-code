@@ -1,5 +1,5 @@
 import vscode from 'vscode'
-import { Scope } from '@/types/Scope'
+import type { Scope } from '@/types/scope'
 import { IScopeTreeItem } from '@/types/TreeItem'
 import { Option } from '@/utils/data-types/Option'
 import { pipe } from '@/utils/pipe'
