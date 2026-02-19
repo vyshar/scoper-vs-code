@@ -1,13 +1,18 @@
-import { TreeItem } from "vscode";
-import { Scope } from "./scope";
+import vscode from 'vscode'
+import { Scope } from './Scope'
 
-export type ScopeTreeItem = TreeItem & {
-    contextValue: "scope" | "activeScope";
-    scope: Scope;
-}
+type TreeItemProps = Pick<
+    vscode.TreeItem,
+    'id' | 'label' | 'description' | 'iconPath' | 'collapsibleState' | 'command' | 'contextValue'
+>
 
-export type ScopeFileTreeItem = TreeItem & {
-    path: string;
-    scopeId: string;
-    contextValue: "file";
-}
+export type IScopeTreeItem = {
+    contextValue: 'scope' | 'activeScope'
+    scope: Scope
+} & TreeItemProps
+
+export type IScopeFileTreeItem = {
+    contextValue: 'file'
+    path: string
+    scopeId: string
+} & TreeItemProps

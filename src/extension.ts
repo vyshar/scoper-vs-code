@@ -1,26 +1,50 @@
-import { ExtensionContext } from "vscode";
-import { createScopeRepository } from "./repositories/scopeRepository";
-import { createScopeService } from "./services/scopeService";
-import { createStatusBarService } from "./services/statusBarService";
-import { registerCommands } from "./utils/register";
-import { CommandContext } from "./types/commandContext";
-import { createTreeViewService } from "./services/treeViewService";
-import commandsList from "./commands";
+import vscode from 'vscode'
 
-export async function activate(context: ExtensionContext): Promise<void> {
-	const repository = createScopeRepository(context);
-	const scopeService = createScopeService(repository);
-	const statusBarService = createStatusBarService(context, scopeService);
-	const treeViewService = createTreeViewService(context, scopeService);
+import { LocalRepository } from '@/repositories/local.repository'
+import { ScopeService } from '@/services/scope.service'
+import { buildCommands } from '@/utils/command'
+import { CommandContext } from './types/Command'
+import { createScopeCommand } from './controllers/createScope'
+import { addFileToScopeCommand } from './controllers/addFileToScope'
+import { selectActiveScopeCommand } from './controllers/selectActiveScope'
+import { removeFileFromScopeCommand } from './controllers/removeFileFromScope'
+import { showFileByIndexCommands, showFileCommand } from './controllers/showFile'
+import { renameScopeCommand } from './controllers/renameScope'
+import { TreeViewService } from './services/treeView.service'
+import { StatusBarService } from './services/statusbar.service'
+import { showScopeFilesCommand } from './controllers/showScopeFiles'
+import { deleteScopeCommand } from './controllers/deleteScope'
+import { DragAndDropController } from './controllers/dragAndDropController'
+import { ChangeEventEmitter } from './types/ChangeEventEmitter'
 
-	const commandContext: CommandContext = {
-		extensionContext: context,
-		scopeService,
-		statusBarService,
-		treeViewService,
-	};
+export async function activate(context: vscode.ExtensionContext): Promise<void> {
+    const changeEventEmitter: ChangeEventEmitter = new vscode.EventEmitter()
+    const sessionRepository = LocalRepository(context.workspaceState)
+    const scopeService = ScopeService(sessionRepository, changeEventEmitter)
+    const dragAndDropController = DragAndDropController(scopeService)
+    const treeViewService = TreeViewService(scopeService, changeEventEmitter, dragAndDropController)
+    const statusBarService = StatusBarService(scopeService, changeEventEmitter)
 
-	registerCommands(commandContext, commandsList);
+    const commandContext: CommandContext = { scopeService }
+
+    const commands = buildCommands(commandContext)([
+        createScopeCommand,
+        selectActiveScopeCommand,
+        addFileToScopeCommand,
+        removeFileFromScopeCommand,
+        renameScopeCommand,
+        showScopeFilesCommand,
+        deleteScopeCommand,
+        showFileCommand,
+        ...showFileByIndexCommands,
+    ])
+
+    context.subscriptions.push(
+        ...commands,
+        ...treeViewService.disposables(),
+        ...statusBarService.disposables(),
+        changeEventEmitter
+    )
 }
 
-export function deactivate(): void { }
+export function deactivate(): void {}
