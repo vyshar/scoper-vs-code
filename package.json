@@ -1,6 +1,6 @@
 {
   "name": "file-scoper",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "displayName": "file-scoper",
   "description": "Scoper allows you to keep at hand files you're woking on. It does not require to keep a lots of tabs opened. Just create a scope, add files to it and it will stays there. Your files will always be right there even if you close tabs or restart vscode.",
   "icon": "resources/icon.png",

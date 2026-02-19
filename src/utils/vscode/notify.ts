@@ -8,6 +8,6 @@ export const notify = {
         vscode.window.showInformationMessage(message)
     },
     success: (message: string): void => {
-        vscode.window.showInformationMessage(`$(check) ${message}`)
+        vscode.window.showInformationMessage(message)
     },
 }
