@@ -1,5 +1,5 @@
-export interface Scope {
+export type Scope = {
     readonly id: string
     readonly name: string
-    readonly files: Readonly<string[]>
+    readonly files: readonly string[]
 }

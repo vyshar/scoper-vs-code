@@ -1,5 +1,5 @@
 import { ILocalRepository } from '@/repositories/local.repository'
-import { Scope } from '@/types/Scope'
+import type { Scope } from '@/types/scope'
 import { Option } from '@/utils/data-types/Option'
 import { Result } from '@/utils/data-types/Result'
 import {
