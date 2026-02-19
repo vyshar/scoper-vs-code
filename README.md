@@ -7,10 +7,12 @@
 ## Features
 
 - **📁 Create Multiple Scopes**: Organize files into different contexts (e.g., "Feature A", "Bug Fix", "Refactoring")
-- **⚡ Quick File Navigation**: **Jump** to any file in your active scope with keyboard shortcuts (`Alt+S Alt+1` through `Alt+S Alt+0`)
+- **⚡ Quick File Navigation**: Jump to any file in your active scope with keyboard shortcuts (`Alt+S Alt+1` through `Alt+S Alt+0`)
+- **🔎 Scope File Picker**: Browse and open any file in the active scope via a searchable quick-pick (`Scoper: Show Scope Files`)
 - **🎯 Persistent File Collections**: Your scopes persist across VS Code sessions
 - **🔍 Focus Sidebar**: Quickly focus the Scopes sidebar with `Alt+S Alt+S`
 - **📊 Visual Tree View**: See all your scopes and their files in a dedicated sidebar
+- **↕️ Drag and Drop**: Reorder files within a scope by dragging them in the tree view
 - **✏️ Easy Management**: Add, remove, rename, and delete scopes through intuitive commands
 
 ## Getting **Started**
@@ -48,8 +50,8 @@ Click on the Scoper icon in the Activity Bar on the left side of VS Code, or use
 
 **Using Command Palette:**
 1. Press `Cmd+Shift+P` / `Ctrl+Shift+P`
-2. Run "Scoper: Set Active Scope"
-3. Select the scope you want to activate from the tree view
+2. Run "Scoper: Select Active Scope"
+3. Pick the scope you want to activate from the quick-pick list
 
 ## Commands
 
@@ -58,12 +60,13 @@ All commands are accessible via the Command Palette (`Cmd+Shift+P` / `Ctrl+Shift
 | Command | Description |
 |---------|-------------|
 | `Scoper: Create Scope` | Create a new scope with a custom name |
-| `Scoper: Set Active Scope` | Set a scope as the currently active one |
+| `Scoper: Select Active Scope` | Set a scope as the currently active one (picker or tree view click) |
 | `Scoper: Add File to active scope` | Add the currently open file to the active scope |
+| `Scoper: Show Scope Files` | Open a searchable picker of all files in the active scope |
 | `Scoper: Rename Scope` | Rename a scope |
 | `Scoper: Delete Scope` | Permanently delete a scope and its file references |
 | `Scoper: Remove File from Scope` | Remove a file from its scope |
-| `Scoper: Open File 1` - `Scoper: Open File 10` | Open files 1-10 from the active scope (used by keybindings) |
+| `Scoper: Open File 1` - `Scoper: Open File 10` | Open files 1–10 from the active scope (used by keybindings) |
 
 ## Keybindings
 
@@ -112,6 +115,7 @@ The Scopes sidebar shows all your scopes and their files in a tree structure:
 **File Actions** (right-click on a file):
 - **✕ Remove from Scope**: Remove the file from this scope (file remains in your workspace)
 - **Click to Open**: Click any file to open it in the editor
+- **Drag to Reorder**: Drag a file up or down within a scope to change its position (affects keybinding order)
 
 ## Usage Examples
 
@@ -156,12 +160,19 @@ The Scopes sidebar shows all your scopes and their files in a tree structure:
 
 ## Release Notes
 
+### 0.0.3
+
+- Added "Show Scope Files" command: searchable quick-pick to browse and open scope files
+- Added drag-and-drop reordering of files within a scope in the tree view
+- Delete scope now clears the active scope when the active scope is deleted
+- Status bar updates on scope rename and delete
+
 ### 0.0.2
 
 Initial release of Scoper:
 - Create and manage multiple scopes
 - Add/remove files from scopes
-- Quick navigation with Alt+S Alt+1-0 chord keybindings
+- Quick navigation with Alt+S Alt+1–0 chord keybindings
 - Focus sidebar with Alt+S Alt+S
 - Persistent scope storage across sessions
 - Tree view for visual scope management
