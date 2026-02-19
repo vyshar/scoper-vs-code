@@ -6,6 +6,7 @@ export const err = <T, E>(error: E): Result<T, E> => ({ _tag: 'Err', error })
 
 export const isOk = <T, E>(result: Result<T, E>): result is Ok<T> => result._tag === 'Ok'
 export const isErr = <T, E>(result: Result<T, E>): result is Err<E> => result._tag === 'Err'
+
 export const match =
     <T, E, U>(onOk: (value: T) => U, onErr: (error: E) => U) =>
     (result: Result<T, E>): U => {
@@ -22,11 +23,22 @@ export const map: <T, U, E>(f: (value: T) => U) => (result: Result<T, E>) => Res
     return result
 }
 
-export const tap =
-    <T>(fn: (value: T) => void) =>
-    (value: T): T => {
-        fn(value)
-        return value
+export const mapErr =
+    <T, E, F>(f: (error: E) => F) =>
+    (result: Result<T, E>): Result<T, F> => {
+        if (isErr(result)) {
+            return err(f(result.error))
+        }
+        return result as unknown as Result<T, F>
+    }
+
+export const flatMap =
+    <T, U, E>(f: (value: T) => Result<U, E>) =>
+    (result: Result<T, E>): Result<U, E> => {
+        if (isOk(result)) {
+            return f(result.value)
+        }
+        return result as unknown as Result<U, E>
     }
 
 export const mapAsync =
@@ -34,12 +46,23 @@ export const mapAsync =
     (promise: Promise<Result<T, E>>): Promise<Result<U, E>> =>
         promise.then(map(f))
 
+export const flatMapAsync =
+    <T, U, E>(f: (value: T) => Promise<Result<U, E>>) =>
+    (promise: Promise<Result<T, E>>): Promise<Result<U, E>> =>
+        promise.then((result) => {
+            if (isOk(result)) {
+                return f(result.value)
+            }
+            return Promise.resolve(result as unknown as Result<U, E>)
+        })
+
 export const asyncTapOk =
-    <T, E>(fn: () => void) =>
-    async (promiseRes: Promise<Result<T, E>>): Promise<Result<T, E>> =>
-        tap<Result<T, E>>((result) => {
-            if (isOk(result)) fn()
-        })(await promiseRes)
+    <T, E>(fn: () => void | Promise<void>) =>
+    async (promiseRes: Promise<Result<T, E>>): Promise<Result<T, E>> => {
+        const result = await promiseRes
+        if (isOk(result)) await fn()
+        return result
+    }
 
 export const fromPromise = async <T, E>(
     promise: Promise<T>,
@@ -60,8 +83,10 @@ export const Result = {
     isErr,
     match,
     map,
-    fromPromise,
+    mapErr,
+    flatMap,
     mapAsync,
+    flatMapAsync,
+    fromPromise,
     tapOkAsync: asyncTapOk,
-    tap,
 }

@@ -1,4 +1,4 @@
-import vscode, { Event } from 'vscode'
+import vscode from 'vscode'
 import { IScopeService } from '../services/scope.service'
 import { IScopeFileTreeItem, IScopeTreeItem } from '../types/TreeItem'
 import { pipe } from '@/utils/pipe'
@@ -53,7 +53,11 @@ export const ScopeTreeDataProvider = (
                 return pipe(
                     scopeService.getScopeFiles(element.scope.id),
                     Result.match(
-                        (files) => files.map<IScopeFileTreeItem>(FileTreeItem(element.scope.id)),
+                        (files) =>
+                            files.map<IScopeFileTreeItem>((f) => {
+                                const relativeDir = vscode.workspace.asRelativePath(f).split('/').slice(0, -1).join('/')
+                                return FileTreeItem(element.scope.id)(f, relativeDir)
+                            }),
                         () => []
                     )
                 )

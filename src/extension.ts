@@ -2,8 +2,6 @@ import vscode from 'vscode'
 
 import { LocalRepository } from '@/repositories/local.repository'
 import { ScopeService } from '@/services/scope.service'
-import { SyncService } from '@/services/sync.service'
-import { JsonRepository } from '@/repositories/json.repository'
 import { buildCommands } from '@/utils/command'
 import { CommandContext } from './types/Command'
 import { createScopeCommand } from './controllers/createScope'
@@ -16,26 +14,20 @@ import { TreeViewService } from './services/treeView.service'
 import { StatusBarService } from './services/statusbar.service'
 import { showScopeFilesCommand } from './controllers/showScopeFiles'
 import { deleteScopeCommand } from './controllers/deleteScope'
+import { DragAndDropController } from './controllers/dragAndDropController'
 import { ChangeEventEmitter } from './types/ChangeEventEmitter'
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
     const changeEventEmitter: ChangeEventEmitter = new vscode.EventEmitter()
     const sessionRepository = LocalRepository(context.workspaceState)
-    const jsonRepository = JsonRepository()
     const scopeService = ScopeService(sessionRepository, changeEventEmitter)
-    const syncService = SyncService(sessionRepository, jsonRepository)
-    const treeViewService = TreeViewService(scopeService, changeEventEmitter)
+    const dragAndDropController = DragAndDropController(scopeService)
+    const treeViewService = TreeViewService(scopeService, changeEventEmitter, dragAndDropController)
     const statusBarService = StatusBarService(scopeService, changeEventEmitter)
 
-    const commandContext: CommandContext = {
-        scopeService,
-        syncService,
-        treeViewService,
-        statusBarService,
-    }
+    const commandContext: CommandContext = { scopeService }
 
-    const commandsBuilder = buildCommands(commandContext)
-    const commands = commandsBuilder([
+    const commands = buildCommands(commandContext)([
         createScopeCommand,
         selectActiveScopeCommand,
         addFileToScopeCommand,
@@ -46,6 +38,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         showFileCommand,
         ...showFileByIndexCommands,
     ])
+
     context.subscriptions.push(
         ...commands,
         ...treeViewService.disposables(),

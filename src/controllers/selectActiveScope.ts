@@ -15,12 +15,14 @@ export const selectActiveScopeCommand = defineCommand(
                 if (Result.isErr(activateResult)) {
                     return notify.error(activateResult.error)
                 }
-                return
+                return notify.success(`Scope "${scopeTreeItem.scope.name}" is now active`)
             }
+
             const scopes = scopeService.getScopes()
 
             if (scopes.length === 0) {
-                return vscode.commands.executeCommand('scoper.createScope')
+                await vscode.commands.executeCommand('scoper.createScope')
+                return
             }
 
             const selectedScope = await showPicker(scopes, (scope) => scope.name, 'Select a scope to activate')

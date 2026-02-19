@@ -9,7 +9,7 @@ export const StatusBarService = (scopeService: IScopeService, changeEventEmitter
         pipe(
             scopeService.getActiveScope(),
             Option.match(
-                (scope) => `$(layers) ${scope.name ?? 'None'}`,
+                (scope) => `$(layers) ${scope.name}`,
                 () => '$(layers) None'
             )
         )
@@ -23,7 +23,6 @@ export const StatusBarService = (scopeService: IScopeService, changeEventEmitter
     changeEventEmitter.event((t) => {
         if (t === 'SELECT_ACTIVE_SCOPE' || t === 'RENAME_SCOPE' || t === 'DELETE_SCOPE') {
             statusBarItem.text = getScopeText()
-            statusBarItem.show()
         }
     })
 

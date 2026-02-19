@@ -1,3 +1,4 @@
+import { basename } from 'node:path'
 import vscode from 'vscode'
 import { defineCommand } from '@/utils/command'
 import { Option } from '@/utils/data-types/Option'
@@ -14,14 +15,15 @@ export const addFileToScopeCommand = defineCommand('addFileToScope', ({ scopeSer
     const activeScopeOption = scopeService.getActiveScope()
 
     if (Option.isNone(activeScopeOption)) {
-        return vscode.commands.executeCommand('scoper.selectActiveScope')
+        await vscode.commands.executeCommand('scoper.selectActiveScope')
+        return
     }
 
     const addFileResult = await scopeService.addFileToScope(activeScopeOption.value.id, currentlyOpenedFile)
-    const filename = currentlyOpenedFile.split('/').pop()
 
     if (Result.isErr(addFileResult)) {
         return notify.error(addFileResult.error)
     }
-    return notify.success(`File "${filename}" added to scope "${activeScopeOption.value.name}"`)
+
+    return notify.success(`File "${basename(currentlyOpenedFile)}" added to scope "${activeScopeOption.value.name}"`)
 })

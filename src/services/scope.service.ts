@@ -130,7 +130,7 @@ export const ScopeService = (localRepository: ILocalRepository, changeEmitter: C
             return pipe(
                 Result.fromPromise(
                     localRepository.update(scope.id, (s) => ({ ...s, files })),
-                    formatError('Failed to move file in scope')
+                    formatError('Failed to reorder files in scope')
                 ),
                 Result.tapOkAsync(() => changeEmitter.fire('MOVE_FILE_IN_SCOPE'))
             )

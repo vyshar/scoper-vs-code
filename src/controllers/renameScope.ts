@@ -24,7 +24,7 @@ export const renameScopeCommand = defineCommand(
             }
             const renameResult = await scopeService.renameScope(scopeTreeItem.scope.id, newName.value)
             if (Result.isErr(renameResult)) {
-                return notify.error('Failed to rename scope')
+                return notify.error(renameResult.error)
             }
 
             return notify.success(`Scope renamed to "${newName.value}"`)

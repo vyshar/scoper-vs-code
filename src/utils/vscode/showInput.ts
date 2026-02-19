@@ -1,5 +1,5 @@
 import vscode from 'vscode'
-import { none, Option, some } from '../data-types/Option'
+import { Option } from '../data-types/Option'
 
 export const showInput = async (
     placeholder: string,
@@ -9,5 +9,5 @@ export const showInput = async (
         prompt: placeholder,
         ...options,
     })
-    return inputValue !== undefined ? some(inputValue) : none
+    return inputValue !== undefined ? Option.some(inputValue) : Option.none
 }

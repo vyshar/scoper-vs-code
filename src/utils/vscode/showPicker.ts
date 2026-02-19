@@ -1,7 +1,7 @@
 import vscode from 'vscode'
 import { Option } from '../data-types/Option'
 
-export const showPicker = async <T extends readonly unknown[] = []>(
+export const showPicker = async <T extends readonly unknown[]>(
     list: T,
     displayFn: (listItem: T[number]) => string,
     placeHolder?: string
@@ -12,5 +12,5 @@ export const showPicker = async <T extends readonly unknown[] = []>(
         placeHolder,
     })
 
-    return Option.fromNullable(selected?.data ?? null)
+    return Option.fromNullable(selected?.data)
 }
