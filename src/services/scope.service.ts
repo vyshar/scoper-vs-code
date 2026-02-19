@@ -8,6 +8,9 @@ import {
     ERROR_SCOPE_NOT_FOUND,
     formatError,
 } from '@/utils/errors'
+import { ChangeEventEmitter } from '@/types/ChangeEventEmitter'
+import { pipe } from '@/utils/pipe'
+import { notify } from '@/utils/vscode/notify'
 
 export interface IScopeService {
     /**
@@ -27,19 +30,20 @@ export interface IScopeService {
     setActiveScope(scope: Scope): Promise<Result<void, string>>
     addFileToScope(scopeId: string, filePath: string): Promise<Result<Scope, string>>
     removeFileFromScope(scopeId: string, filePath: string): Promise<Result<Scope, string>>
-    getScopeFiles(scopeId: string): Result<string[], string>
+    swapFilesInScope(scopeId: string, filePath: string, targetFilePath: string | null): Promise<Result<Scope, string>>
+    getScopeFiles(scopeId: string): Result<readonly string[], string>
 }
 
-export const ScopeService = (localRepository: ILocalRepository): IScopeService => {
+export const ScopeService = (localRepository: ILocalRepository, changeEmitter: ChangeEventEmitter): IScopeService => {
     return {
         getScopeByName: (name: string) => Option.fromNullable(localRepository.getByName(name)),
         getScopes: localRepository.getAll,
         getScopeById: (id: string): Option<Scope> => Option.fromNullable(localRepository.getById(id)),
         getActiveScope: (): Option<Scope> => Option.fromNullable(localRepository.getActiveScope()),
         setActiveScope: async (scope: Scope) => {
-            return Result.fromPromise(
-                localRepository.setActiveScope(scope.id),
-                formatError('Failed to set active scope')
+            return pipe(
+                Result.fromPromise(localRepository.setActiveScope(scope.id), formatError('Failed to set active scope')),
+                Result.tapOkAsync(() => changeEmitter.fire('SELECT_ACTIVE_SCOPE'))
             )
         },
         createScope: async (name: string) => {
@@ -48,7 +52,10 @@ export const ScopeService = (localRepository: ILocalRepository): IScopeService =
             }
             const newScope: Scope = { name, id: crypto.randomUUID(), files: [] }
 
-            return Result.fromPromise(localRepository.add(newScope), formatError('Failed to create scope'))
+            return pipe(
+                Result.fromPromise(localRepository.add(newScope), formatError('Failed to create scope')),
+                Result.tapOkAsync(() => changeEmitter.fire('CREATE_SCOPE'))
+            )
         },
         addFileToScope: async (scopeId: string, filePath: string) => {
             const scope = localRepository.getById(scopeId)
@@ -59,9 +66,12 @@ export const ScopeService = (localRepository: ILocalRepository): IScopeService =
             if (fileAlreadyInScope) {
                 return Result.err(ERROR_FILE_ALREADY_EXISTS)
             }
-            return Result.fromPromise(
-                localRepository.update(scope.id, (s) => ({ ...s, files: [...s.files, filePath] })),
-                formatError('Failed to add file to scope')
+            return pipe(
+                Result.fromPromise(
+                    localRepository.update(scope.id, (s) => ({ ...s, files: [...s.files, filePath] })),
+                    formatError('Failed to add file to scope')
+                ),
+                Result.tapOkAsync(() => changeEmitter.fire('ADD_FILE_TO_SCOPE'))
             )
         },
         removeFileFromScope: async (scopeId: string, filePath: string) => {
@@ -70,9 +80,15 @@ export const ScopeService = (localRepository: ILocalRepository): IScopeService =
                 return Result.err(ERROR_SCOPE_NOT_FOUND)
             }
 
-            return Result.fromPromise(
-                localRepository.update(scope.id, (s) => ({ ...s, files: s.files.filter((f) => f !== filePath) })),
-                formatError('Failed to remove file from scope')
+            return pipe(
+                Result.fromPromise(
+                    localRepository.update(scope.id, (s) => ({
+                        ...s,
+                        files: s.files.filter((f) => f !== filePath),
+                    })),
+                    formatError('Failed to remove file from scope')
+                ),
+                Result.tapOkAsync(() => changeEmitter.fire('REMOVE_FILE_FROM_SCOPE'))
             )
         },
         renameScope: async (scopeId: string, newName: string) => {
@@ -84,12 +100,39 @@ export const ScopeService = (localRepository: ILocalRepository): IScopeService =
                 return Result.err(ERROR_DUPLICATE_SCOPE_NAME)
             }
 
-            return Result.fromPromise(
-                localRepository.update(scope.id, (s) => ({ ...s, name: newName })),
-                formatError('Failed to rename scope')
+            return pipe(
+                Result.fromPromise(
+                    localRepository.update(scope.id, (s) => ({ ...s, name: newName })),
+                    formatError('Failed to rename scope')
+                ),
+                Result.tapOkAsync(() => changeEmitter.fire('RENAME_SCOPE'))
             )
         },
-        getScopeFiles: (scopeId: string): Result<string[], string> => {
+        swapFilesInScope: async (scopeId: string, filePath: string, targetFilePath: string | null) => {
+            const scope = localRepository.getById(scopeId)
+            if (!scope) {
+                return Result.err(ERROR_SCOPE_NOT_FOUND)
+            }
+
+            const fileIndex = scope.files.findIndex((f) => f === filePath)
+            const targetIndex = targetFilePath ? scope.files.findIndex((f) => f === targetFilePath) : -1
+
+            const files = [...scope.files]
+            const f = files[fileIndex]
+            const t = files[targetIndex]
+
+            files[fileIndex] = t
+            files[targetIndex] = f
+
+            return pipe(
+                Result.fromPromise(
+                    localRepository.update(scope.id, (s) => ({ ...s, files })),
+                    formatError('Failed to move file in scope')
+                ),
+                Result.tapOkAsync(() => changeEmitter.fire(undefined))
+            )
+        },
+        getScopeFiles: (scopeId: string): Result<readonly string[], string> => {
             const scope = localRepository.getById(scopeId)
             if (!scope) {
                 return Result.err(ERROR_SCOPE_NOT_FOUND)
@@ -101,7 +144,10 @@ export const ScopeService = (localRepository: ILocalRepository): IScopeService =
             if (!scope) {
                 return Result.err(ERROR_SCOPE_NOT_FOUND)
             }
-            return Result.fromPromise(localRepository.delete(scopeId), formatError('Failed to delete scope'))
+            return pipe(
+                Result.fromPromise(localRepository.delete(scopeId), formatError('Failed to delete scope')),
+                Result.tapOkAsync(() => changeEmitter.fire('DELETE_SCOPE'))
+            )
         },
     }
 }

@@ -1,4 +1,4 @@
-import { ExtensionContext } from 'vscode'
+import vscode from 'vscode'
 
 import { LocalRepository } from '@/repositories/local.repository'
 import { ScopeService } from '@/services/scope.service'
@@ -16,14 +16,16 @@ import { TreeViewService } from './services/treeView.service'
 import { StatusBarService } from './services/statusbar.service'
 import { showScopeFilesCommand } from './controllers/showScopeFiles'
 import { deleteScopeCommand } from './controllers/deleteScope'
+import { ChangeEventEmitter } from './types/ChangeEventEmitter'
 
-export async function activate(context: ExtensionContext): Promise<void> {
+export async function activate(context: vscode.ExtensionContext): Promise<void> {
+    const changeEventEmitter: ChangeEventEmitter = new vscode.EventEmitter()
     const sessionRepository = LocalRepository(context.workspaceState)
     const jsonRepository = JsonRepository()
-    const scopeService = ScopeService(sessionRepository)
+    const scopeService = ScopeService(sessionRepository, changeEventEmitter)
     const syncService = SyncService(sessionRepository, jsonRepository)
-    const treeViewService = TreeViewService(scopeService)
-    const statusBarService = StatusBarService(scopeService)
+    const treeViewService = TreeViewService(scopeService, changeEventEmitter)
+    const statusBarService = StatusBarService(scopeService, changeEventEmitter)
 
     const commandContext: CommandContext = {
         scopeService,
@@ -44,7 +46,12 @@ export async function activate(context: ExtensionContext): Promise<void> {
         showFileCommand,
         ...showFileByIndexCommands,
     ])
-    context.subscriptions.push(...commands, ...treeViewService.disposables(), ...statusBarService.disposables())
+    context.subscriptions.push(
+        ...commands,
+        ...treeViewService.disposables(),
+        ...statusBarService.disposables(),
+        changeEventEmitter
+    )
 }
 
 export function deactivate(): void {}

@@ -8,7 +8,7 @@ import { notify } from '@/utils/vscode/notify'
 
 export const renameScopeCommand = defineCommand(
     'renameScope',
-    ({ scopeService, treeViewService }) =>
+    ({ scopeService }) =>
         async (scopeTreeItem?: IScopeTreeItem) => {
             if (!scopeTreeItem) {
                 return
@@ -27,7 +27,6 @@ export const renameScopeCommand = defineCommand(
                 return notify.error('Failed to rename scope')
             }
 
-            treeViewService.refresh()
             return notify.success(`Scope renamed to "${newName.value}"`)
         }
 )

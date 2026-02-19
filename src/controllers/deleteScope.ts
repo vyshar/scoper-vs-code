@@ -6,7 +6,7 @@ import { notify } from '@/utils/vscode/notify'
 
 export const deleteScopeCommand = defineCommand(
     'deleteScope',
-    ({ scopeService, treeViewService }) =>
+    ({ scopeService }) =>
         async (scopeTreeItem?: IScopeTreeItem) => {
             if (!scopeTreeItem) {
                 return
@@ -18,7 +18,6 @@ export const deleteScopeCommand = defineCommand(
                 deleteResult,
                 Result.match(
                     () => {
-                        treeViewService.refresh()
                         return notify.success(`Scope "${scopeTreeItem.scope.name}" deleted`)
                     },
                     () => {

@@ -15,7 +15,36 @@ export const match =
         return onErr(result.error)
     }
 
-export const fromPromise = async <T, E>(promise: Promise<T>, onError: (error: unknown) => E): Promise<Result<T, E>> => {
+export const map: <T, U, E>(f: (value: T) => U) => (result: Result<T, E>) => Result<U, E> = (f) => (result) => {
+    if (isOk(result)) {
+        return ok(f(result.value))
+    }
+    return result
+}
+
+export const tap =
+    <T>(fn: (value: T) => void) =>
+    (value: T): T => {
+        fn(value)
+        return value
+    }
+
+export const mapAsync =
+    <T, U, E>(f: (value: T) => U) =>
+    (promise: Promise<Result<T, E>>): Promise<Result<U, E>> =>
+        promise.then(map(f))
+
+export const asyncTapOk =
+    <T, E>(fn: () => void) =>
+    async (promiseRes: Promise<Result<T, E>>): Promise<Result<T, E>> =>
+        tap<Result<T, E>>((result) => {
+            if (isOk(result)) fn()
+        })(await promiseRes)
+
+export const fromPromise = async <T, E>(
+    promise: Promise<T>,
+    onError: (error: unknown) => E
+): Promise<Result<Awaited<T>, E>> => {
     try {
         return ok(await promise)
     } catch (error) {
@@ -30,5 +59,9 @@ export const Result = {
     isOk,
     isErr,
     match,
+    map,
     fromPromise,
+    mapAsync,
+    tapOkAsync: asyncTapOk,
+    tap,
 }

@@ -8,15 +8,13 @@ import { showPicker } from '@/utils/vscode/showPicker'
 
 export const selectActiveScopeCommand = defineCommand(
     'selectActiveScope',
-    ({ scopeService, treeViewService, statusBarService }) =>
+    ({ scopeService }) =>
         async (scopeTreeItem?: IScopeTreeItem) => {
             if (scopeTreeItem) {
                 const activateResult = await scopeService.setActiveScope(scopeTreeItem.scope)
                 if (Result.isErr(activateResult)) {
                     return notify.error(activateResult.error)
                 }
-                treeViewService.refresh()
-                statusBarService.setActiveScopeName(scopeTreeItem.scope.name)
                 return
             }
             const scopes = scopeService.getScopes()
@@ -36,9 +34,6 @@ export const selectActiveScopeCommand = defineCommand(
             if (Result.isErr(activateResult)) {
                 return notify.error(activateResult.error)
             }
-
-            treeViewService.refresh()
-            statusBarService.setActiveScopeName(selectedScope.value.name)
 
             return notify.success(`Scope "${selectedScope.value.name}" is now active`)
         }

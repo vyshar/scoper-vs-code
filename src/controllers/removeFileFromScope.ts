@@ -5,7 +5,7 @@ import type { IScopeFileTreeItem } from '@/types/TreeItem'
 
 export const removeFileFromScopeCommand = defineCommand(
     'removeFileFromScope',
-    ({ scopeService, treeViewService }) =>
+    ({ scopeService }) =>
         async (scopeFileTreeItem?: IScopeFileTreeItem) => {
             if (!scopeFileTreeItem) {
                 return
@@ -18,8 +18,6 @@ export const removeFileFromScopeCommand = defineCommand(
             if (Result.isErr(removeFileResult)) {
                 return notify.error(removeFileResult.error)
             }
-
-            treeViewService.refresh()
 
             const filename = path.split('/').pop()
 

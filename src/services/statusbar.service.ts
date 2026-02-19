@@ -1,26 +1,33 @@
-import { createStatusBarItem } from '../views/statusBarItem'
+import vscode from 'vscode'
+import { ChangeEventEmitter } from '@/types/ChangeEventEmitter'
 import { IScopeService } from './scope.service'
 import { Option } from '@/utils/data-types/Option'
 import { pipe } from '@/utils/pipe'
 
-export const StatusBarService = (scopeService: IScopeService) => {
-    const scopeName = pipe(
-        scopeService.getActiveScope(),
-        Option.match(
-            (scope) => scope.name,
-            () => 'None'
+export const StatusBarService = (scopeService: IScopeService, changeEventEmitter: ChangeEventEmitter) => {
+    const getScopeText = () =>
+        pipe(
+            scopeService.getActiveScope(),
+            Option.match(
+                (scope) => `$(layers) ${scope.name ?? 'None'}`,
+                () => '$(layers) None'
+            )
         )
-    )
 
-    const statusBarItem = createStatusBarItem(scopeName)
-
+    const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100)
+    statusBarItem.tooltip = 'Active Scope'
+    statusBarItem.command = 'scoper.selectActiveScope'
+    statusBarItem.text = getScopeText()
     statusBarItem.show()
 
-    return {
-        setActiveScopeName: (scopeName: string) => {
-            statusBarItem.text = `$(layers) ${scopeName}`
+    changeEventEmitter.event((t) => {
+        if (t === 'SELECT_ACTIVE_SCOPE') {
+            statusBarItem.text = getScopeText()
             statusBarItem.show()
-        },
+        }
+    })
+
+    return {
         disposables: () => [statusBarItem],
     }
 }

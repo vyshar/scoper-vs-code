@@ -4,13 +4,14 @@ import { IScopeFileTreeItem, IScopeTreeItem } from '../types/TreeItem'
 import { ScopeTreeDataProvider } from '../views/treeDataProvider'
 import { Option } from '@/utils/data-types/Option'
 import { pipe } from '@/utils/pipe'
+import { ChangeEventEmitter } from '@/types/ChangeEventEmitter'
+import { DragAndDropController } from '@/controllers/dragAndDropController'
 
-export const TreeViewService = (scopeService: IScopeService) => {
-    const treeViewEventEmitter = new vscode.EventEmitter<IScopeTreeItem | IScopeFileTreeItem | undefined>()
-    const treeDataProvider = ScopeTreeDataProvider(scopeService, treeViewEventEmitter)
-
+export const TreeViewService = (scopeService: IScopeService, changeEmitter: ChangeEventEmitter) => {
+    const treeDataProvider = ScopeTreeDataProvider(scopeService, changeEmitter)
     const treeView = vscode.window.createTreeView('scoperTreeView', {
         treeDataProvider,
+        dragAndDropController: DragAndDropController(scopeService),
         showCollapseAll: false,
     })
 
@@ -22,7 +23,7 @@ export const TreeViewService = (scopeService: IScopeService) => {
             })
         )
 
-    vscode.window.onDidChangeActiveTextEditor((editor) => {
+    const editorChangeDisposable = vscode.window.onDidChangeActiveTextEditor((editor) => {
         if (!editor || !treeView.visible) {
             return
         }
@@ -40,10 +41,7 @@ export const TreeViewService = (scopeService: IScopeService) => {
     })
 
     return {
-        refresh: () => {
-            treeViewEventEmitter.fire(undefined)
-        },
-        disposables: () => [treeView, treeViewEventEmitter],
+        disposables: () => [treeView, editorChangeDisposable],
     }
 }
 
